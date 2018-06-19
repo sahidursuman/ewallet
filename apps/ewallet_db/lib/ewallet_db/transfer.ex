@@ -55,6 +55,38 @@ defmodule EWalletDB.Transfer do
     )
 
     belongs_to(
+      :from_account,
+      Account,
+      foreign_key: :from_account_uuid,
+      references: :uuid,
+      type: UUID
+    )
+
+    belongs_to(
+      :to_account,
+      Account,
+      foreign_key: :to_account_uuid,
+      references: :uuid,
+      type: UUID
+    )
+
+    belongs_to(
+      :from_user,
+      User,
+      foreign_key: :from_user_uuid,
+      references: :uuid,
+      type: UUID
+    )
+
+    belongs_to(
+      :to_user,
+      User,
+      foreign_key: :to_user_uuid,
+      references: :uuid,
+      type: UUID
+    )
+
+    belongs_to(
       :to_wallet,
       Wallet,
       foreign_key: :to,
@@ -74,6 +106,7 @@ defmodule EWalletDB.Transfer do
   end
 
   defp changeset(%Transfer{} = transfer, attrs) do
+    IO.inspect(attrs)
     transfer
     |> cast(attrs, [
       :idempotency_token,
@@ -89,7 +122,11 @@ defmodule EWalletDB.Transfer do
       :amount,
       :token_uuid,
       :to,
-      :from
+      :to_account_uuid,
+      :to_user_uuid,
+      :from,
+      :from_account_uuid,
+      :from_user_uuid
     ])
     |> validate_required([
       :idempotency_token,
@@ -97,15 +134,17 @@ defmodule EWalletDB.Transfer do
       :type,
       :payload,
       :amount,
-      :token_uuid,
+      :token,
+      :metadata,
       :to,
       :from,
-      :metadata,
       :encrypted_metadata
     ])
     |> validate_from_wallet_identifier()
     |> validate_inclusion(:status, @statuses)
     |> validate_inclusion(:type, @types)
+    |> validate_required_exclusive(%{from_account: nil, from_user: nil, from: "genesis"})
+    |> validate_required_exclusive([:to_account, :to_user])
     |> validate_exclusive([:entry_uuid, :error_code])
     |> validate_immutable(:idempotency_token)
     |> unique_constraint(:idempotency_token)

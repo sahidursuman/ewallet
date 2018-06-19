@@ -19,9 +19,9 @@ defmodule EWallet.TransferTest do
 
     %{
       idempotency_token: UUID.generate(),
-      from: from.address,
-      to: to.address,
-      token_id: token.id,
+      from_wallet: from,
+      to_wallet: to,
+      token: token,
       amount: 100 * token.subunit_to_unit,
       metadata: %{},
       payload: %{}

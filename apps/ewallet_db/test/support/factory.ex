@@ -185,7 +185,9 @@ defmodule EWalletDB.Factory do
       amount: 100,
       token: insert(:token),
       from_wallet: insert(:wallet),
-      to_wallet: insert(:wallet)
+      from_user: insert(:user),
+      to_wallet: insert(:wallet),
+      to_account: insert(:account)
     }
   end
 

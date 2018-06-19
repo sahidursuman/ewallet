@@ -13,7 +13,7 @@ defmodule EWallet.TransactionGateTest do
     transfer!(master_wallet.address, address, token, amount * token.subunit_to_unit)
   end
 
-  describe "process_with_addresses/1" do
+  describe "create/1" do
     def insert_addresses_records do
       {:ok, user1} = User.insert(params_for(:user))
       {:ok, user2} = User.insert(params_for(:user))
@@ -76,7 +76,7 @@ defmodule EWallet.TransactionGateTest do
 
       assert inserted_transfer.status == Transfer.confirmed()
 
-      {status, transfer, _user, _token} = TransactionGate.process_with_addresses(attrs)
+      {status, transfer, _user, _token} = TransactionGate.create(attrs)
       assert status == :ok
 
       assert inserted_transfer.id == transfer.id
@@ -96,7 +96,7 @@ defmodule EWallet.TransactionGateTest do
 
       assert inserted_transfer.status == Transfer.failed()
 
-      {status, transfer, code, description} = TransactionGate.process_with_addresses(attrs)
+      {status, transfer, code, description} = TransactionGate.create(attrs)
       assert status == :error
       assert code == "code!"
       assert description == "description!"
@@ -119,7 +119,7 @@ defmodule EWallet.TransactionGateTest do
       assert inserted_transfer.status == Transfer.pending()
       init_wallet(inserted_transfer.from, inserted_transfer.token, 1_000)
 
-      {status, transfer, _wallets, _token} = TransactionGate.process_with_addresses(attrs)
+      {status, transfer, _wallets, _token} = TransactionGate.create(attrs)
       assert status == :ok
 
       assert inserted_transfer.id == transfer.id
@@ -133,7 +133,7 @@ defmodule EWallet.TransactionGateTest do
       {wallet1, wallet2, token} = insert_addresses_records()
       attrs = build_addresses_attrs(idempotency_token, wallet1, wallet2, token)
 
-      {status, transfer, code, _description} = TransactionGate.process_with_addresses(attrs)
+      {status, transfer, code, _description} = TransactionGate.create(attrs)
       assert status == :error
       assert transfer.status == Transfer.failed()
       assert code == "insufficient_funds"
@@ -169,7 +169,7 @@ defmodule EWallet.TransactionGateTest do
       attrs = build_addresses_attrs(idempotency_token, wallet1, wallet2, token)
       init_wallet(wallet1.address, token, 1_000)
 
-      {status, _transfer, _wallets, _token} = TransactionGate.process_with_addresses(attrs)
+      {status, _transfer, _wallets, _token} = TransactionGate.create(attrs)
 
       assert status == :ok
 
@@ -195,7 +195,7 @@ defmodule EWallet.TransactionGateTest do
       {wallet1, wallet2, token} = insert_addresses_records()
 
       {res, transfer, code, _description} =
-        TransactionGate.process_with_addresses(%{
+        TransactionGate.create(%{
           "from_address" => wallet1.address,
           "to_address" => wallet2.address,
           "token_id" => token.id,
@@ -215,7 +215,7 @@ defmodule EWallet.TransactionGateTest do
       attrs = build_addresses_attrs(idempotency_token, wallet1, wallet2, token)
       init_wallet(wallet1.address, token, 1_000)
 
-      {status, transfer, wallets, token} = TransactionGate.process_with_addresses(attrs)
+      {status, transfer, wallets, token} = TransactionGate.create(attrs)
       assert status == :ok
       assert transfer.idempotency_token == idempotency_token
       assert wallets == [wallet1, wallet2]

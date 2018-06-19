@@ -92,7 +92,7 @@ defmodule EWalletDB.SchemaCase do
           |> get_factory
           |> params_for
           |> schema.insert()
-
+        IO.inspect(val)
         assert res == :ok
       end
     end

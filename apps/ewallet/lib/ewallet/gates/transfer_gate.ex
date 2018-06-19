@@ -4,7 +4,7 @@ defmodule EWallet.TransferGate do
   """
   alias EWallet.TransferFormatter
   alias LocalLedger.Entry
-  alias EWalletDB.{Token, Transfer}
+  alias EWalletDB.Transfer
 
   @doc """
   Gets or inserts a transfer using the given idempotency token and other given attributes.
@@ -30,19 +30,9 @@ defmodule EWallet.TransferGate do
     end
 
   """
-  def get_or_insert(
-        %{
-          idempotency_token: _,
-          from: _,
-          to: _,
-          token_id: _,
-          amount: _,
-          payload: _
-        } = attrs
-      ) do
+  def get_or_insert(attrs) do
     attrs
     |> Map.put(:type, Transfer.internal())
-    |> Map.put(:token_uuid, Token.get_by(id: attrs.token_id).uuid)
     |> Transfer.get_or_insert()
   end
 
