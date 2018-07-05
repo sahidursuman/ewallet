@@ -19,7 +19,7 @@ defmodule EWallet.ReleaseTasks do
   defp seed_with(spec) do
     Enum.each(@seed_start_apps, &Application.ensure_all_started/1)
     Enum.each(spec, &ensure_started/1)
-    _ = CLI.run(spec)
+    _ = CLI.run(spec, true)
     :init.stop()
   end
 

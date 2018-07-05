@@ -1,0 +1,55 @@
+---
+# Note: this file is intended to be used for developing the Docker image itself
+# via the `make docker-local` and `make docker-local-up` commands.
+#
+# You may use this file as a starting point for your own docker-compose.yml
+# in case you're testing out the eWallet server. You will want to change the
+# omisego/ewallet:dev image to omisego/ewallet:latest and update EWALLET_SECRET_KEY
+# and LOCAL_LEDGER_SECRET_KEY accordingly by running:
+#
+#    $ elixir -e "IO.puts 32 |> :crypto.strong_rand_bytes() |> Base.encode64()"
+#
+# Then run:
+#
+#    $ docker exec -it docker-local_ewallet_1 bin/ewallet initdb
+#    $ docker exec -it docker-local_ewallet_1 bin/ewallet seed
+#
+# Please get in touch via Gitter in case you have any problems. We're happy to help!
+# https://gitter.im/omisego/ewallet
+
+version: "3"
+services:
+  postgres:
+    image: postgres:9.6.9-alpine
+    restart: always
+    volumes:
+      - postgres-db:/var/lib/postgresql/data
+    networks:
+      - internal
+    environment:
+      POSTGRESQL_PASSWORD: passw0rd
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready", "-U", "postgres"]
+      interval: 30s
+      retries: 3
+
+  ewallet:
+    image: omisego/ewallet:dev
+    restart: always
+    networks:
+      - internal
+      - external
+    depends_on:
+      - postgres
+    environment:
+      DATABASE_URL: "postgresql://postgres:passw0rd@postgres:5432/ewallet"
+      LOCAL_LEDGER_DATABASE_URL: "postgresql://postgres:passw0rd@postgres:5432/local_ledger"
+      EWALLET_SECRET_KEY: "cmYiVLguEYmshfagrfLp0rlBKgLCjAbpZ46OkaljtB8="
+      LOCAL_LEDGER_SECRET_KEY: "Ki8JxbD/JQsYkQyCo0sOxYelWEYJ8Nsv93aEyXhLzNg="
+
+networks:
+  external:
+  internal:
+
+volumes:
+  postgres-db:
