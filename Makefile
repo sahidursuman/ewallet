@@ -8,15 +8,31 @@ DOCKER_BUILDER  := "omisegoimages/ewallet-builder:beec6e8"
 # Setting-up
 #
 
-.PHONY: deps
+.PHONY: deps deps-ewallet deps-assets
 
-deps:
+deps: deps-ewallet deps-assets
+
+deps-ewallet:
 	mix deps.get
 
-clean:
+deps-assets:
+	cd apps/admin_panel/assets && \
+		yarn install
+
+#
+# Cleaning
+#
+
+.PHONY: clean clean-ewallet clean-assets
+
+clean: clean-ewallet clean-assets
+
+clean-ewallet:
 	rm -rf _build/
 	rm -rf deps/
-	rm -rf apps/admin_panel/node_modules
+
+clean-assets:
+	rm -rf apps/admin_panel/assets/node_modules
 	rm -rf apps/admin_panel/priv/static
 
 #
@@ -38,29 +54,34 @@ lint:
 
 .PHONY: build-assets build-prod build-test
 
-build-assets:
+build-assets: deps-assets
 	cd apps/admin_panel/assets && \
-		yarn install && \
 		yarn build
 
 # If we call mix phx.digest without mix compile, mix release will silently fail
 # for some reason. Always make sure to run mix compile first.
-build-prod: build-assets deps
+build-prod: deps-ewallet build-assets
 	env MIX_ENV=prod mix compile
 	env MIX_ENV=prod mix phx.digest
 	env MIX_ENV=prod mix release
 
-build-test: deps
+build-test: deps-ewallet
 	env MIX_ENV=test mix compile
 
 #
 # Testing
 #
 
-.PHONY: test
+.PHONY: test test-ewallet test-assets
 
-test: build-test
+test: test-ewallet test-assets
+
+test-ewallet: build-test
 	env MIX_ENV=test mix do ecto.create, ecto.migrate, test
+
+test-assets: build-assets
+	cd apps/admin_panel/assets && \
+		yarn test
 
 #
 # Docker

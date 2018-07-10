@@ -33,6 +33,12 @@ services:
       interval: 30s
       retries: 3
 
+  mailhog:
+    image: mailhog/mailhog:v1.0.0
+    restart: always
+    networks:
+      - internal
+
   ewallet:
     image: omisego/ewallet:dev
     restart: always
@@ -46,6 +52,8 @@ services:
       LOCAL_LEDGER_DATABASE_URL: "postgresql://postgres:passw0rd@postgres:5432/local_ledger"
       EWALLET_SECRET_KEY: "cmYiVLguEYmshfagrfLp0rlBKgLCjAbpZ46OkaljtB8="
       LOCAL_LEDGER_SECRET_KEY: "Ki8JxbD/JQsYkQyCo0sOxYelWEYJ8Nsv93aEyXhLzNg="
+      SMTP_HOST: mailhosg
+      SMTP_PORT: 1025
 
 networks:
   external:
